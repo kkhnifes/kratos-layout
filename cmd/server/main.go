@@ -5,8 +5,6 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/go-kratos/kratos-layout/internal/conf"
-
 	"github.com/go-kratos/kratos/contrib/otel/v3/tracing"
 	"github.com/go-kratos/kratos/v3"
 	"github.com/go-kratos/kratos/v3/config"
@@ -14,6 +12,12 @@ import (
 	"github.com/go-kratos/kratos/v3/log"
 	"github.com/go-kratos/kratos/v3/transport/grpc"
 	"github.com/go-kratos/kratos/v3/transport/http"
+
+	"github.com/kkhnifes/kratos-layout/internal/biz"
+	"github.com/kkhnifes/kratos-layout/internal/conf"
+	"github.com/kkhnifes/kratos-layout/internal/data"
+	"github.com/kkhnifes/kratos-layout/internal/server"
+	"github.com/kkhnifes/kratos-layout/internal/service"
 
 	_ "go.uber.org/automaxprocs"
 )
@@ -32,6 +36,18 @@ var (
 
 func init() {
 	flag.StringVar(&flagconf, "conf", "../../configs", "config path, eg: -conf config.yaml")
+}
+
+func buildApp(confServer *conf.Server, confData *conf.Data, logger *slog.Logger) (*kratos.App, func(), error) {
+	d, cleanup, err := data.NewData(confData)
+	if err != nil {
+		return nil, nil, err
+	}
+	todoRepo := data.NewTodoRepo(d)
+	todoUC := biz.New(todoRepo)
+	todoSvc := service.New(todoUC)
+	gs, hs := server.New(confServer, todoSvc)
+	return newApp(logger, gs, hs), func() { cleanup() }, nil
 }
 
 func newApp(logger *slog.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
@@ -78,7 +94,7 @@ func main() {
 		panic(err)
 	}
 
-	app, cleanup, err := wireApp(bc.Server, bc.Data, logger)
+	app, cleanup, err := buildApp(bc.Server, bc.Data, logger)
 	if err != nil {
 		panic(err)
 	}

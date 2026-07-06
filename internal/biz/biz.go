@@ -1,6 +1,7 @@
+// Package biz holds domain models, usecases, and repo interfaces.
 package biz
 
-import "github.com/google/wire"
-
-// ProviderSet is biz providers.
-var ProviderSet = wire.NewSet(NewTodoUsecase)
+// New builds this layer's usecases from their repo dependencies.
+func New(todoRepo TodoRepo) *TodoUsecase {
+	return NewTodoUsecase(todoRepo)
+}

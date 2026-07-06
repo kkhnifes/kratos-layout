@@ -1,0 +1,23 @@
+---
+all: false
+dir: 'mock/{{ (replaceAll "github.com/kkhnifes/kratos-layout/" "" .SrcPackagePath) | replaceAll "internal/" "" }}'
+filename: "{{ snakecase .InterfaceName }}.go"
+force-file-write: true
+formatter: goimports
+log-level: info
+structname: "{{.Mock}}{{.InterfaceName}}"
+pkgname: "{{.SrcPackageName}}mock"
+recursive: true
+template: testify
+packages:
+  # gRPC server + HTTP server/client interfaces (mockery skips auto-generated files by default)
+  github.com/kkhnifes/kratos-layout/api/todo/v1:
+    config:
+      include-auto-generated: true
+      include-interface-regex: ^.*(Client|Server)$
+      exclude-interface-regex: ^(Unsafe|Unimplemented).*
+  # all interfaces under internal (TodoRepo, etc.)
+  github.com/kkhnifes/kratos-layout/internal:
+    config:
+      include-interface-regex: ^.*$
+      exclude-interface-regex: ^(TestingT|Mock|Unsafe|Unimplemented).*

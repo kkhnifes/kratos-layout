@@ -1,13 +1,14 @@
 syntax = "proto3";
 package kratos.api;
 
-option go_package = "github.com/go-kratos/kratos-layout/internal/conf;conf";
-
 import "google/protobuf/duration.proto";
+
+option go_package = "github.com/kkhnifes/kratos-layout/internal/conf;conf";
 
 message Bootstrap {
   Server server = 1;
   Data data = 2;
+  Log log = 3;
 }
 
 message Server {
@@ -38,4 +39,21 @@ message Data {
   }
   Database database = 1;
   Redis redis = 2;
+}
+
+enum LogLevel {
+  Debug = 0;
+  Info = 1;
+  Warn = 2;
+  Error = 3;
+  Fatal = 4;
+}
+
+message Log {
+  string log_path = 1;
+  LogLevel log_level = 2;
+  int32 max_size = 3;
+  int32 max_keep_days = 4;
+  int32 max_keep_files = 5;
+  bool compress = 6;
 }

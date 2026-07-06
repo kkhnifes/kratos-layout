@@ -1,0 +1,67 @@
+---
+version: "2"
+# https://github.com/golangci/golangci-lint/blob/HEAD/.golangci.reference.yml
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  exclusions:
+    paths:
+      - vendor
+      - .git
+      - .github
+      - .vscode
+      - .idea
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/kkhnifes/kratos-layout
+linters:
+  enable:
+    - protogetter
+    - gocritic
+    - gosec
+    - iface
+    - intrange
+    - unconvert
+    - zerologlint
+    - copyloopvar
+    - decorder
+    - depguard
+    - errcheck
+    - errorlint
+    - exhaustive
+    - govet
+    - misspell
+    - nolintlint
+    - predeclared
+    - reassign
+    - revive
+    - staticcheck
+    - thelper
+    - unparam
+    - unused
+    - usestdlibvars
+    - usetesting
+    - wastedassign
+    - whitespace
+  exclusions:
+    paths:
+      - vendor
+      - pb
+    presets:
+      - comments
+    rules:
+      - linters:
+          - revive
+        text: "^var-naming: .* should be .*$"
+  settings:
+    depguard:
+      rules:
+        main:
+          list-mode: lax
+          allow:
+            - $gostd
+            - github.com/kkhnifes/kratos-layout/
+run:
+  allow-parallel-runners: true

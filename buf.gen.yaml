@@ -1,19 +1,81 @@
+---
 version: v2
-inputs:
-  - directory: api
+managed:
+  enabled: true
+  override:
+    - file_option: go_package
+      module: buf.build/bufbuild/protovalidate
+      value: buf.build/go/protovalidate
 plugins:
-  - local: ["go", "run", "google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11"]
+  # Use protoc-gen-go latest
+  - remote: buf.build/protocolbuffers/go
     out: api
     opt: paths=source_relative
-  - local: ["go", "run", "google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.6.2"]
+  # Use the latest version of protoc-gen-go-grpc
+  - remote: buf.build/grpc/go
     out: api
-    opt: paths=source_relative
-  - local: ["go", "run", "github.com/go-kratos/kratos/cmd/protoc-gen-go-http/v3@v3.0.0-20260526000039-30da04b769dc"]
-    out: api
-    opt: paths=source_relative
-  - local: ["go", "run", "github.com/google/gnostic/cmd/protoc-gen-openapi@v0.7.1"]
-    out: .
-    strategy: all
     opt:
-      - fq_schema_naming=true
-      - default_response=false
+      - paths=source_relative
+      - require_unimplemented_servers=false
+  # Use the latest version of protoc-gen-validate
+  - remote: buf.build/bufbuild/validate-go
+    out: api
+    opt:
+      - paths=source_relative
+  # Generate Google AIP resource-name helpers from google.api.resource annotations.
+  - local: ["protoc-gen-go-aip"]
+    out: api
+    opt:
+      - paths=source_relative
+  # gen openapi for docs.
+  - remote: buf.build/community/google-gnostic-openapi
+    out: docs
+    opt:
+      - paths=source_relative
+      - naming=proto
+  # gen swagger format api docs
+  #  - remote: buf.build/grpc-ecosystem/openapiv2
+  #    out: docs
+  # gen html format for docs
+  - remote: buf.build/community/pseudomuto-doc
+    out: docs
+    opt:
+      - markdown,README.md
+  # this plugin will be installed via kratos upgrade.so use as local
+  - local: protoc-gen-go-http
+    # - remote: buf.build/community/pseudomuto-doc
+    #   out: docs
+    #   opt:
+    #     - html,docs.html
+
+    out: api
+    opt:
+      - paths=source_relative
+      # supported other parameter
+      #  omit if google.api is empty,default:true
+      #- omitempty=false
+      # if google.api is empty,use this prefix,default:""
+      # - omitempty_prefix=/v1
+  # this plugin will be installed via kratos upgrade
+  - local: protoc-gen-go-errors
+    out: api
+    opt:
+      - paths=source_relative
+
+# ====================================================
+#       other purpose plugins.for more plugins,visit
+#        https://buf.build/plugins
+# ====================================================
+# to generate optimized marshalling & unmarshalling code you can use the plugin,
+# but conflict with default protoc-gen-go plugin
+
+#  - remote: buf.build/community/planetscale-vtprotobuf
+#    out: api
+#    opt:
+#      - paths=source_relative
+
+# gRPC to JSON proxy generator following the gRPC HTTP spec.
+#  - remote: buf.build/grpc-ecosystem/gateway
+#    out: gen
+#    opt:
+#      - paths=source_relative

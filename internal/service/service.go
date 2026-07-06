@@ -1,6 +1,9 @@
+// Package service holds transport adapters that convert DTO ↔ DO.
 package service
 
-import "github.com/google/wire"
+import "github.com/kkhnifes/kratos-layout/internal/biz"
 
-// ProviderSet is service providers.
-var ProviderSet = wire.NewSet(NewTodoService)
+// New builds this layer's services from their usecase dependencies.
+func New(todoUC *biz.TodoUsecase) *TodoService {
+	return NewTodoService(todoUC)
+}

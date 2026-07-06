@@ -1,43 +1,40 @@
-# Kratos Project Template
+# Kratos Service Template
 
-A project template for creating new Kratos services with HTTP and gRPC
-transports, protobuf-first APIs, Wire dependency injection, OpenAPI generation,
-and a small CRUD example.
-
-Use this repository as a starting point for a new service. The included sample
-resource is only reference code for API shape, layering, code generation, and
-testing. Replace it with your own domain model when creating a real project.
+A template for creating new Kratos services with HTTP and gRPC
+transports, protobuf-first APIs, manual layer composition, and OpenAPI
+plus proto doc generation. A small CRUD example (Todo resource) shows
+the API shape, layering, code generation, and testing conventions —
+replace it with your own domain model when creating a real project.
 
 ## Create a New Project
 
 1. Copy or generate a repository from this template.
-2. Update the Go module path:
+2. Run the interactive setup; it prompts for an app name and rewrites
+   the Go module path plus all import references:
 
-```bash
-go mod edit -module github.com/your-org/your-service
-```
+   ```bash
+   mise run setup
+   ```
 
-3. Replace existing import paths that reference this template module.
-4. Rename the command, service metadata, and sample API package to match your
-   service.
-5. Replace the sample CRUD resource with your own resource.
-6. Regenerate code and verify the project:
+3. Replace the sample CRUD resource with your own.
+4. Regenerate code and verify the build:
 
-```bash
-make all
-go test ./...
-```
+   ```bash
+   mise run generate
+   go test ./...
+   ```
 
 ## What Is Included
 
 - Kratos HTTP and gRPC server setup.
-- Protobuf API definitions and generated Go code.
-- OpenAPI generation.
-- Wire-based dependency injection.
+- Protobuf API definitions with generated Go stubs.
+- OpenAPI document and Markdown proto docs, generated into `docs/`.
+- Generated mocks for service and repo tests, in `mock/`.
+- Manual dependency composition via `buildApp` in `cmd/<app>/main.go`.
 - Layered `service`, `biz`, and `data` packages.
-- A lightweight in-memory repository for the sample resource.
-- Unit tests for the service layer.
-- Server-streaming and bidirectional-streaming examples.
+- An in-memory repository for the sample resource.
+- Server-streaming (`WatchTodos`) and bidirectional (`SyncTodos`) RPCs.
+- `mise`-driven tasks for generation, lint, format, and builds.
 
 ## Project Layout
 
@@ -45,60 +42,67 @@ go test ./...
 api/                  Protobuf APIs and generated bindings
 cmd/                  Application entrypoints
 configs/              Local configuration
+docs/                 Generated OpenAPI document and proto docs
+mock/                 Generated mocks for service/repo tests
+internal/conf/        Config protobufs
 internal/server/      HTTP and gRPC server construction
-internal/service/     Transport-facing service methods
-internal/biz/         Usecases, entities, errors, repository interfaces
-internal/data/        Repository implementations
-third_party/          Protobuf dependencies
-openapi.yaml          Generated OpenAPI document
+internal/service/     Transport adapters; DTO ↔ DO conversion
+internal/biz/         Usecases, domain models, errors, repo interfaces
+internal/data/        Repository implementations and storage clients
+mise.toml             mise tool versions and tasks
+Dockerfile            Multi-stage, cross-compiling image
 ```
 
 ## API Template Practices
 
-The sample CRUD API demonstrates common conventions for Kratos projects:
+The sample Todo API demonstrates the conventions this template expects:
 
-- Resource-oriented methods: create, get, list, update, delete.
-- HTTP annotations with `google.api.http`.
-- Required fields with `google.api.field_behavior`.
-- List requests with `page_size`, `page_token`, `filter`, and `order_by`.
-- Pagination with `go.einride.tech/aip/pagination`.
+- Resource-oriented CRUD: create, get, list, update, delete.
+- HTTP annotations via `google.api.http`.
+- Required fields marked with `google.api.field_behavior`.
+- List requests with `page_size`, `page_token`, `filter`, `order_by`.
+- Pagination via `go.einride.tech/aip/pagination`.
 - Partial updates with `google.protobuf.FieldMask` and `fieldmask.Update`.
-- Streaming RPC definitions for one-way and bidirectional streams.
+- Streaming RPC definitions for server and bidirectional streams.
 
-The in-memory data layer intentionally stays simple. It demonstrates flow across
-layers, but does not implement a full query engine. Real repositories can apply
-parsed filters and ordering in SQL, Ent, or another storage layer.
+The in-memory data layer is intentionally simple — it shows flow across
+layers, not a full query engine. Real repositories apply parsed filters
+and ordering in SQL, Ent, or another storage layer.
 
 ## Development Commands
 
-Install generators:
+Tooling and generators are managed by `mise` (see `mise.toml`).
+
+Install declared tools:
 
 ```bash
-make init
+mise install
 ```
 
-Regenerate API bindings and OpenAPI:
+Regenerate proto stubs, mocks, OpenAPI, and proto docs:
 
 ```bash
-make api
+mise run generate
 ```
 
-Regenerate config protobufs:
+Build the binary (goreleaser snapshot):
 
 ```bash
-make config
+mise run build:binary
 ```
 
-Run all generation steps, Wire, and module cleanup:
+Build and push the multi-arch Docker image (uses `REGISTRY`, `PKG_PATH`,
+`APP_NAME` envs):
 
 ```bash
-make all
+mise run build:docker
 ```
 
-Build:
+Lint and format:
 
 ```bash
-make build
+mise run lint
+mise run fmt
 ```
 
 Test:
@@ -113,16 +117,24 @@ go test ./...
 go run ./cmd/server -conf ./configs
 ```
 
-Default local ports are configured in `configs/config.yaml`:
+Default local ports (configured in `configs/config.yaml`):
 
 - HTTP: `0.0.0.0:8000`
 - gRPC: `0.0.0.0:9000`
 
 ## Docker
 
+Local single-arch build and run:
+
 ```bash
 docker build -t <your-image-name> .
 docker run --rm -p 8000:8000 -p 9000:9000 \
   -v </path/to/your/configs>:/data/conf \
   <your-image-name>
+```
+
+Multi-arch build and push:
+
+```bash
+mise run build:docker
 ```

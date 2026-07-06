@@ -8,10 +8,10 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/go-kratos/kratos-layout/api/todo/v1;v1";
+option go_package = "github.com/kkhnifes/kratos-layout/api/todo/v1;v1";
 option java_multiple_files = true;
-option java_package = "io.grpc.examples.todo.v1";
 option java_outer_classname = "TodoProto";
+option java_package = "io.grpc.examples.todo.v1";
 
 // TodoService provides a simple CRUD example for managing todo items.
 // It demonstrates unary, server-streaming, and bidirectional-streaming RPCs
@@ -20,7 +20,7 @@ service TodoService {
   // CreateTodo creates a new todo item and returns the persisted record
   // with the server-assigned id, create_time, and update_time populated.
   // Returns INVALID_ARGUMENT if the request payload fails validation.
-  rpc CreateTodo (CreateTodoRequest) returns (Todo) {
+  rpc CreateTodo(CreateTodoRequest) returns (Todo) {
     option (google.api.http) = {
       post: "/v1/todos/create"
       body: "todo"
@@ -29,19 +29,15 @@ service TodoService {
 
   // GetTodo returns a single todo item by its id.
   // Returns NOT_FOUND if no todo exists with the supplied id.
-  rpc GetTodo (GetTodoRequest) returns (Todo) {
-    option (google.api.http) = {
-      get: "/v1/todos/{id}"
-    };
+  rpc GetTodo(GetTodoRequest) returns (Todo) {
+    option (google.api.http) = {get: "/v1/todos/{id}"};
   }
 
   // ListTodos returns a page of todo items, optionally filtered and ordered.
   // Use the next_page_token from TodoSet to retrieve subsequent pages.
   // Returns INVALID_ARGUMENT if filter, order_by, or page_token are malformed.
-  rpc ListTodos (ListTodosRequest) returns (TodoSet) {
-    option (google.api.http) = {
-      get: "/v1/todos/list"
-    };
+  rpc ListTodos(ListTodosRequest) returns (TodoSet) {
+    option (google.api.http) = {get: "/v1/todos/list"};
   }
 
   // UpdateTodo applies a partial update to an existing todo item using a
@@ -49,7 +45,7 @@ service TodoService {
   // other fields are left unchanged.
   // Returns NOT_FOUND if the target todo does not exist, or
   // INVALID_ARGUMENT if update_mask references unknown fields.
-  rpc UpdateTodo (UpdateTodoRequest) returns (Todo) {
+  rpc UpdateTodo(UpdateTodoRequest) returns (Todo) {
     option (google.api.http) = {
       put: "/v1/todos/update"
       body: "todo"
@@ -58,26 +54,22 @@ service TodoService {
 
   // DeleteTodo permanently removes a todo item by its id.
   // Returns NOT_FOUND if no todo exists with the supplied id.
-  rpc DeleteTodo (DeleteTodoRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {
-      delete: "/v1/todos/{id}"
-    };
+  rpc DeleteTodo(DeleteTodoRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/todos/{id}"};
   }
 
   // WatchTodos opens a server-side stream that emits a TodoEvent for every
   // create, update, or delete that matches the supplied filter and ordering.
   // The stream remains open until the client cancels or the server terminates it.
-  rpc WatchTodos (WatchTodosRequest) returns (stream TodoEvent) {
-    option (google.api.http) = {
-      get: "/v1/todos/watch"
-    };
+  rpc WatchTodos(WatchTodosRequest) returns (stream TodoEvent) {
+    option (google.api.http) = {get: "/v1/todos/watch"};
   }
 
   // SyncTodos opens a bidirectional stream for two-way synchronization.
   // The client sends SyncTodoRequest messages describing local changes, and
   // the server pushes back TodoEvent messages reflecting the resulting state.
   // The stream stays open until either side closes it.
-  rpc SyncTodos (stream SyncTodoRequest) returns (stream TodoEvent) {
+  rpc SyncTodos(stream SyncTodoRequest) returns (stream TodoEvent) {
     option (google.api.http) = {
       post: "/v1/todos/sync"
       body: "*"

@@ -1,0 +1,90 @@
+[tools]
+go = "1.26.5"
+
+"go:github.com/vektra/mockery/v3" = "latest"
+"go:google.golang.org/grpc/cmd/protoc-gen-go-grpc" = "latest"
+"go:github.com/bufbuild/buf/cmd/buf" = "latest"
+"go:github.com/go-kratos/kratos/cmd/protoc-gen-go-http/v3" = "latest"
+"go:go.einride.tech/aip/cmd/protoc-gen-go-aip"="latest"
+"go:github.com/protoc-gen/protoc-gen-go-errors"="latest"
+"go:golang.org/x/vuln/cmd/govulncheck"="latest"
+"go:github.com/google/yamlfmt/cmd/yamlfmt" = "latest"
+golangci-lint = "v2.12.2"
+gitleaks = "latest"
+
+[tasks."generate:buf"]
+description = "Generate gRPC stubs"
+sources = ['api/**/*.proto','internal/conf/*.proto']
+run = "buf generate"
+
+[tasks."generate:mock"]
+description = "Generate mock stubs"
+run = "mockery"
+
+[tasks.generate]
+description = "Generate stubs"
+depends = ["generate:*"]
+
+[tasks."build:binary"]
+description = "Build binary"
+run = "goreleaser build --snapshot"
+depends = ["generate"]
+
+[tasks."setup:appname"]
+description = "Prompt for and store the app name"
+run = "go run .mise/tasks/setup/appname.go"
+
+[tasks.setup]
+description = "Setup the project"
+depends = ["setup:appname","setup:gopkg"]
+
+[tasks."setup:gopkg"]
+description = "Rewrite the Go module path and update imports"
+depends = ["setup:appname"]
+run = "go run .mise/tasks/setup/gopkg.go"
+
+[tasks."build:docker"]
+description = "Build and push the multi-arch Docker image"
+run = "go run .mise/tasks/build/docker.go"
+
+[tasks."lint:go"]
+description = "Run golangci-lint"
+run = "golangci-lint run"
+
+[tasks."lint:yaml"]
+description = "Run yamllint"
+run = "yamllint ."
+
+[tasks.lint]
+description = "Run lint"
+depends = ["lint:*"]
+
+[tasks."fmt:go"]
+description = "Run golangci-lint fmt"
+run = "golangci-lint fmt"
+
+[tasks."fmt:yaml"]
+description = "Run yamlfmt"
+run = "yamlfmt ."
+
+[tasks.fmt]
+description = "Format files"
+depends = ["fmt:*"]
+
+[tasks."security:leaks"]
+description ="Run gitleaks"
+run = "gitleaks git -v"
+
+[tasks."security:vuln"]
+description ="Run govulncheck"
+run = "govulncheck ./..."
+
+[tasks."security"]
+description = "Run all security tasks"
+depends = ["security:*"]
+
+[env]
+APP_NAME = "kratos-layout"
+REGISTRY = "ghcr.io"
+GIT_PROVIDER = "github.com"
+PKG_PATH = "kkhnifes"

@@ -159,7 +159,7 @@ func (c *todoServiceClient) SyncTodos(ctx context.Context, opts ...grpc.CallOpti
 type TodoService_SyncTodosClient = grpc.BidiStreamingClient[SyncTodoRequest, TodoEvent]
 
 // TodoServiceServer is the server API for TodoService service.
-// All implementations must embed UnimplementedTodoServiceServer
+// All implementations should embed UnimplementedTodoServiceServer
 // for forward compatibility.
 //
 // TodoService provides a simple CRUD example for managing todo items.
@@ -195,10 +195,9 @@ type TodoServiceServer interface {
 	// the server pushes back TodoEvent messages reflecting the resulting state.
 	// The stream stays open until either side closes it.
 	SyncTodos(grpc.BidiStreamingServer[SyncTodoRequest, TodoEvent]) error
-	mustEmbedUnimplementedTodoServiceServer()
 }
 
-// UnimplementedTodoServiceServer must be embedded to have
+// UnimplementedTodoServiceServer should be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
@@ -226,8 +225,7 @@ func (UnimplementedTodoServiceServer) WatchTodos(*WatchTodosRequest, grpc.Server
 func (UnimplementedTodoServiceServer) SyncTodos(grpc.BidiStreamingServer[SyncTodoRequest, TodoEvent]) error {
 	return status.Error(codes.Unimplemented, "method SyncTodos not implemented")
 }
-func (UnimplementedTodoServiceServer) mustEmbedUnimplementedTodoServiceServer() {}
-func (UnimplementedTodoServiceServer) testEmbeddedByValue()                     {}
+func (UnimplementedTodoServiceServer) testEmbeddedByValue() {}
 
 // UnsafeTodoServiceServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to TodoServiceServer will

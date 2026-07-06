@@ -1,12 +1,13 @@
 package server
 
 import (
-	v1 "github.com/go-kratos/kratos-layout/api/todo/v1"
-	"github.com/go-kratos/kratos-layout/internal/conf"
-	"github.com/go-kratos/kratos-layout/internal/service"
 	"github.com/go-kratos/kratos/v3/middleware/recovery"
 	"github.com/go-kratos/kratos/v3/middleware/validate"
 	"github.com/go-kratos/kratos/v3/transport/http"
+
+	v1 "github.com/kkhnifes/kratos-layout/api/todo/v1"
+	"github.com/kkhnifes/kratos-layout/internal/conf"
+	"github.com/kkhnifes/kratos-layout/internal/service"
 
 	"go.einride.tech/aip/fieldbehavior"
 	"google.golang.org/protobuf/proto"
@@ -14,7 +15,7 @@ import (
 
 // NewHTTPServer new an HTTP server.
 func NewHTTPServer(c *conf.Server, todo *service.TodoService) *http.Server {
-	var opts = []http.ServerOption{
+	opts := []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
 			validate.Validator(func(req any) error {

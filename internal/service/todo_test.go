@@ -5,9 +5,9 @@ import (
 	"io"
 	"testing"
 
-	v1 "github.com/go-kratos/kratos-layout/api/todo/v1"
-	"github.com/go-kratos/kratos-layout/internal/biz"
-	"github.com/go-kratos/kratos-layout/internal/data"
+	v1 "github.com/kkhnifes/kratos-layout/api/todo/v1"
+	"github.com/kkhnifes/kratos-layout/internal/biz"
+	"github.com/kkhnifes/kratos-layout/internal/data"
 
 	kratoserrors "github.com/go-kratos/kratos/v3/errors"
 	"google.golang.org/grpc/metadata"

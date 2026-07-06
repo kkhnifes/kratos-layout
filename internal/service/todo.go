@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	v1 "github.com/go-kratos/kratos-layout/api/todo/v1"
-	"github.com/go-kratos/kratos-layout/internal/biz"
+	v1 "github.com/kkhnifes/kratos-layout/api/todo/v1"
+	"github.com/kkhnifes/kratos-layout/internal/biz"
 
 	"go.einride.tech/aip/fieldmask"
 	"go.einride.tech/aip/filtering"
