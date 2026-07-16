@@ -32,6 +32,11 @@ Thumbs.db
 *.log
 bin/
 
+# mise task binaries (from `go build .mise/tasks/.../*.go`)
+/docker
+/appname
+/gopkg
+
 # Develop tools
 .vscode/
 .idea/

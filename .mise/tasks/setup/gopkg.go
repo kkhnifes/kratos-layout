@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"log"
@@ -9,44 +8,39 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	mise "github.com/kkhnifes/kratos-layout/.mise/internal/mise"
 )
 
 func main() {
-	// this
 	oldModule, err := readGoModule("go.mod")
 	if err != nil {
 		log.Fatalf("read go.mod: %v", err)
 	}
-	log.Printf("current module: %s", oldModule)
 
-	fmt.Print("New path name: ")
-	newPath, err := readLine(os.Stdin)
-	if err != nil {
-		log.Fatalf("read input: %v", err)
-	}
-	newPath = strings.TrimSpace(newPath)
-	if newPath == "" {
-		log.Fatal("path cannot be empty")
-	}
-	if err := miseSet("env.PKG_PATH", newPath); err != nil {
-		log.Fatalf("set PKG_PATH: %v", err)
-	}
-
-	app, err := miseGet("env.APP_NAME")
-	if err != nil {
-		log.Fatalf("read APP_NAME: %v", err)
-	}
-	provider, err := miseGet("env.GIT_PROVIDER")
-	if err != nil {
-		log.Fatalf("read GIT_PROVIDER: %v", err)
-	}
+	pkgPath, _ := mise.Get("env.PKG_PATH")
+	app, _ := mise.Get("env.APP_NAME")
+	provider, _ := mise.Get("env.GIT_PROVIDER")
 	if app == "" || provider == "" {
 		log.Fatal("APP_NAME and GIT_PROVIDER must be set before running setup:gopkg")
 	}
 
-	newModule := fmt.Sprintf("%s/%s/%s", provider, newPath, app)
-	log.Printf("new module: %s", newModule)
+	newPath, changed, err := mise.Prompt("New path name", pkgPath)
+	if err != nil {
+		log.Fatalf("read input: %v", err)
+	}
+	if !changed {
+		log.Printf("module path kept: %s", oldModule)
+		return
+	}
+	if newPath == "" {
+		log.Fatal("path cannot be empty")
+	}
+	if err := mise.Set("env.PKG_PATH", newPath); err != nil {
+		log.Fatalf("set PKG_PATH: %v", err)
+	}
 
+	newModule := fmt.Sprintf("%s/%s/%s", provider, newPath, app)
 	if err := replaceOnce("go.mod", "module "+oldModule, "module "+newModule); err != nil {
 		log.Fatalf("update go.mod: %v", err)
 	}
@@ -120,32 +114,4 @@ func replaceInTree(root, old, new string) (int, error) {
 		return 0, err
 	}
 	return count, nil
-}
-
-func miseGet(key string) (string, error) {
-	out, err := exec.Command("mise", "config", "get", key).Output()
-	if err != nil {
-		return "", fmt.Errorf("mise config get %s: %w", key, err)
-	}
-	return strings.TrimSpace(string(out)), nil
-}
-
-func miseSet(key, value string) error {
-	arg := fmt.Sprintf("%s=%s", key, value)
-	cmd := exec.Command("mise", "config", "set", arg)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("mise config set %s: %w", arg, err)
-	}
-	return nil
-}
-
-func readLine(f *os.File) (string, error) {
-	r := bufio.NewReader(f)
-	line, err := r.ReadString('\n')
-	if err != nil && line == "" {
-		return "", err
-	}
-	return strings.TrimRight(line, "\r\n"), nil
 }

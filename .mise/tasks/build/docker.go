@@ -9,6 +9,10 @@ import (
 )
 
 func main() {
+	if _, err := exec.LookPath("docker"); err != nil {
+		log.Fatalf("docker not found in PATH: %v", err)
+	}
+
 	appName, ok := os.LookupEnv("APP_NAME")
 	if !ok || appName == "" {
 		log.Fatal("APP_NAME is not set")
@@ -21,11 +25,17 @@ func main() {
 
 	version, err := gitOut("describe", "--tags", "--always")
 	if err != nil {
-		log.Fatalf("git describe: %v", err)
+		log.Fatalf("%v", err)
+	}
+	if version == "" {
+		log.Fatal("git describe: empty output")
 	}
 	vcsRef, err := gitOut("rev-parse", "--short", "HEAD")
 	if err != nil {
-		log.Fatalf("git rev-parse: %v", err)
+		log.Fatalf("%v", err)
+	}
+	if vcsRef == "" {
+		log.Fatal("git rev-parse: empty output")
 	}
 
 	tag := fmt.Sprintf("%s/%s/%s:%s", registry, pkgPath, appName, version)
@@ -48,7 +58,7 @@ func main() {
 func gitOut(args ...string) (string, error) {
 	out, err := exec.Command("git", args...).Output()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("git %v: %w", args, err)
 	}
 	return string(bytes.TrimSpace(out)), nil
 }
