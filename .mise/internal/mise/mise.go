@@ -3,6 +3,7 @@ package mise
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -28,12 +29,16 @@ func Set(key, value string) error {
 }
 
 func Prompt(label, current string) (value string, changed bool, err error) {
+	return promptFrom(label, current, os.Stdin, os.Stdout)
+}
+
+func promptFrom(label, current string, r io.Reader, w io.Writer) (string, bool, error) {
 	if current != "" {
-		fmt.Printf("%s [current: %s]: ", label, current)
+		fmt.Fprintf(w, "%s [current: %s]: ", label, current)
 	} else {
-		fmt.Printf("%s: ", label)
+		fmt.Fprintf(w, "%s: ", label)
 	}
-	line, err := bufio.NewReader(os.Stdin).ReadString('\n')
+	line, err := bufio.NewReader(r).ReadString('\n')
 	if err != nil && line == "" {
 		return "", false, fmt.Errorf("read input: %w", err)
 	}
